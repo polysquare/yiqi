@@ -1,0 +1,114 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Yiqi by polysquare</title>
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="javascripts/respond.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <!--[if lt IE 8]>
+    <link rel="stylesheet" href="stylesheets/ie.css">
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  </head>
+  <body>
+      <div id="header">
+        <nav>
+          <li class="fork"><a href="https://github.com/polysquare/yiqi">View On GitHub</a></li>
+          <li class="downloads"><a href="https://github.com/polysquare/yiqi/zipball/master">ZIP</a></li>
+          <li class="downloads"><a href="https://github.com/polysquare/yiqi/tarball/master">TAR</a></li>
+          <li class="title">DOWNLOADS</li>
+        </nav>
+      </div><!-- end header -->
+
+    <div class="wrapper">
+
+      <section>
+        <div id="title">
+          <h1>Yiqi</h1>
+          <p>Instrumentation for code under test</p>
+          <hr>
+          <span class="credits left">Project maintained by <a href="https://github.com/polysquare">polysquare</a></span>
+          <span class="credits right">Hosted on GitHub Pages &mdash; Theme by <a href="http://twitter.com/#!/michigangraham">mattgraham</a></span>
+        </div>
+
+        <h1>Yíqì (仪器)</h1>
+
+<p>Instrumentation for code under test. Yíqì (仪器) is a Mandarin word for "Instrument" according to Google Translate.</p>
+
+<h1>Under construction</h1>
+
+<p>Yiqi is currently under construction, but a working version should be ready soon.</p>
+
+<h1>Purpose</h1>
+
+<p>The purpose of Yiqi is to provide a small amount of framework that you can integrate into your tests written using Google Test (and perhaps other testing frameworks in future) to provide instrumentation analysis for when your tests run using valgrind. Possible usages include call profiling (callgrind), cache profiling (cachegrind), memory error detection (CGCheck, memcheck) and heap profiling (massif).</p>
+
+<p>Running tests under these tools is a good idea because it means that you can profile typical usages of your system in a predictable and automated manner, as opposed to running your application through valgrind.</p>
+
+<p>What makes Yiqi different from simply just running your tests under these tools is that Yiqi allows you to specify where client code begins and ends, so your test code doesn't clutter up the statistics that you're trying to gather from your client code. This allows you to keep track of instrumentation records for a system under test accurately without having to worry about changes or details in the test framework affecting the results of that instrumentation.</p>
+
+<h1>Proposed Usage</h1>
+
+<p>Link your tests to the yiqi_main library. Then you can provide the tooling you wish to use on the command line:</p>
+
+<p>./your_test_binary --yiqi_tool memcheck</p>
+
+<p>By default, Yiqi will not perform instrumentation. However, should instrumentation be required, it will re-exec your test under valgrind for you.</p>
+
+<p>Yiqi needs to know when your client code begins and ends so it can skip providing statistics on test code. To do that, you can either use the provided macro CLIENT_CODE, or if you don't like macros, provide a functor () to ExecuteClientCode (); For example:</p>
+
+<pre><code>TEST_F (Fixture, Test)
+{
+    int x = 0;
+    int y = 1;
+
+    int result = 0;
+
+    CLIENT_CODE ({
+         result = client::do_something (x, y);
+    })
+
+    EXPECT_EQ (1, result);
+}
+</code></pre>
+
+<p>Or, without the macro:</p>
+
+<pre><code>TEST_F (Fixture, Test)
+{
+    int x = 0;
+    int y = 1;
+
+    int result = 0;
+
+    ExecuteClientCode ([&amp;]() {
+        result = client::do_something (x, y);
+    }
+
+    EXPECT_EQ (1, result);
+}
+</code></pre>
+
+<p>Yiqi will print some information that come from the instrumentation and fail your test if there are serious errors (for example, improper memory usage or definite leaks) that instrumentation detects. It wil also add this data to the gtest xml output, so that it can be tracked by continous-integration systems.</p>
+
+<h1>Caveats</h1>
+
+<p>Yiqi probably won't work with any test framework that requires gtest_main to be overriden like xorg-gtest. Though maybe we can get around that be LD_PRELOAD'ing another main () if that's even possible.</p>
+
+<p>Yiqi will require all tests to inherit from the fixture yiqi::InstrumentableTest if they wish to use instrumentation. That means no fixture-less tests.</p>
+
+<p>The xml data format hasn't been defined yet.</p>
+      </section>
+
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+    
+  </body>
+</html>
