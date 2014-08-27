@@ -8,6 +8,11 @@ Under construction
 
 Yiqi is currently under construction, but a working version should be ready soon.
 
+Status
+======
+[![Build Status](https://travis-ci.org/polysquare/yiqi.svg?branch=master)](https://travis-ci.org/polysquare/yiqi)
+[![Coverage Status](https://coveralls.io/repos/polysquare/yiqi/badge.png?branch=master)](https://coveralls.io/r/polysquare/yiqi?branch=master)
+
 Purpose
 =======
 
