@@ -105,7 +105,7 @@ yc::FactoryPackageForTool (yconst::InstrumentationTool toolID)
             fp.at (static_cast <unsigned int> (toolID));
         return factory;
     }
-    catch (std::range_error const &err)
+    catch (std::out_of_range const &err)
     {
         throw ToolNotAvailableError (toolID);
     }

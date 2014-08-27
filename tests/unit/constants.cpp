@@ -69,5 +69,13 @@ TEST_P (ConstantsLookup, LookupByEnumMatchesStringValue)
     EXPECT_STREQ (ExpectedStringValue, yconst::StringFromTool (LookupEnum));
 }
 
+TEST (ConstantsLookup, LookupByStringNotMatchingAnyKnownToolThrows)
+{
+    EXPECT_THROW ({
+        char const *WrongLookupString = "____does_not_exist";
+        yconst::ToolFromString (WrongLookupString);
+    }, std::logic_error);
+}
+
 INSTANTIATE_TEST_CASE_P (AvailableTools, ConstantsLookup,
                          ValuesIn (yconst::InstrumentationToolNames ()));

@@ -57,19 +57,20 @@ namespace
 
             Pipe (OSWrapper &userspace)
             {
-                if (userspace.pipe (mPipe) == -1)
-                    throw std::runtime_error (strerror (errno));
+                int result = userspace.pipe (mPipe);
+                assert (result != -1);
             }
 
             ~Pipe ()
             {
-                if (mPipe[0] &&
-                    close (mPipe[0]) == -1)
-                    std::cerr << "mPipe[0] " << strerror (errno) << std::endl;
-
-                if (mPipe[1] &&
-                    close (mPipe[1]) == -1)
-                    std::cerr << "mPipe[0] " << strerror (errno) << std::endl;
+                for (size_t i = 0; i < 2; ++i)
+                {
+                    if (mPipe[i])
+                    {
+                        int result = close (mPipe[i]);
+                        assert (result != -1);
+                    }
+                }
             }
 
             /* Read end descriptor is read-only */
@@ -102,19 +103,18 @@ namespace
                 mBackupFd (0)
             {
                 mBackupFd = dup (mOriginalFd);
-
-                /* Save original */
-                if (mBackupFd == -1)
-                    throw std::runtime_error (strerror (errno));
+                assert (mBackupFd != -1);
             }
 
             ~FileDescriptorBackup ()
             {
                 /* Redirect backed up fd to old fd location */
-                if (mBackupFd &&
-                    dup2 (mBackupFd, mOriginalFd) == -1)
-                    std::cerr << "Failed to restore file descriptor "
-                              << strerror (errno) << std::endl;
+                if (mBackupFd)
+                {
+                    int result = dup2 (mBackupFd, mOriginalFd);
+                    assert ("Failed to restore file descriptor " &&
+                            result != -1);
+                }
             }
 
         private:
@@ -134,20 +134,22 @@ namespace
         public:
 
             RedirectedDescriptor (int from,
-                                      int &to) :
+                                  int &to) :
                 mToFd (to)
             {
                 /* Make 'to' take the old file descriptor's place */
-                if (dup2 (to, from) == -1)
-                    throw std::runtime_error (strerror (errno));
+                int result = dup2 (to, from);
+                assert (result != -1);
             }
 
             ~RedirectedDescriptor ()
             {
-                if (mToFd &&
-                    close (mToFd) == -1)
-                    std::cerr << "Failed to close redirect-to file descriptor "
-                    << strerror (errno) << std::endl;
+                if (mToFd)
+                {
+                    int result = close (mToFd);
+                    assert ("Failed to close redirect-to file descriptor" &&
+                            result != -1);
+                }
 
                 mToFd = 0;
             }
@@ -179,8 +181,8 @@ namespace
          * the one we just closed, making us unable to restore
          * the closed one properly */
 
-        if (close (STDOUT_FILENO) == -1)
-            throw std::runtime_error (strerror (errno));
+        int closeStdoutResult = close (STDOUT_FILENO);
+        assert (closeStdoutResult != -1);
 
         /* Replace the current process stderr and stdout with the write end
          * of the pipes. Now when someone tries to write to stderr or stdout
@@ -192,6 +194,7 @@ namespace
          * but the duplicated write ends now taking the place of
          * stderr and stdout will not be */
         pid_t child = fork ();
+        assert (child != -1);
 
         /* Child process */
         if (child == 0)
@@ -209,9 +212,6 @@ namespace
                 abort ();
             }
         }
-        /* Parent process - error */
-        else if (child == -1)
-            throw std::runtime_error (strerror (errno));
 
         /* The old file descriptors for the stderr and stdout
          * are put back in place, and pipe write ends closed

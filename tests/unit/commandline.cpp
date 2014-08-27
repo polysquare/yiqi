@@ -54,21 +54,20 @@ class BuildCommandLine :
 {
     public:
 
-        BuildCommandLine () :
-            instrumentation (new ymockit::Program)
+        BuildCommandLine ()
         {
             /* We don't care about whether or not these functions are
              * called, we care about how the system under test handles
              * them */
-            EXPECT_CALL (*instrumentation, WrapperBinary ())
+            EXPECT_CALL (instrumentation, WrapperBinary ())
                 .Times (AtLeast (0));
-            EXPECT_CALL (*instrumentation, WrapperOptions ())
+            EXPECT_CALL (instrumentation, WrapperOptions ())
                 .Times (AtLeast (0));
         }
 
     protected:
 
-        std::unique_ptr <ymockit::Program> instrumentation;
+        ymockit::Program instrumentation;
 };
 
 TEST_F (BuildCommandLine, ThrowOnNoArgs)
@@ -77,7 +76,7 @@ TEST_F (BuildCommandLine, ThrowOnNoArgs)
     EXPECT_THROW ({
         ycom::BuildCommandLine (ytest::ArgumentCount (originalArgs),
                                 ytest::Arguments (originalArgs),
-                                *instrumentation);
+                                instrumentation);
     },
     std::runtime_error);
 }
@@ -86,14 +85,14 @@ TEST_F (BuildCommandLine, NoWrapperOrOptionsJustArgvReturnsArgvAt0)
 {
     CommandLineArguments originalArgs (GenerateCommandLine (NoOptions));
 
-    ON_CALL (*instrumentation, WrapperBinary ())
+    ON_CALL (instrumentation, WrapperBinary ())
         .WillByDefault (ReturnRef (NilString));
-    ON_CALL (*instrumentation, WrapperOptions ())
+    ON_CALL (instrumentation, WrapperOptions ())
         .WillByDefault (ReturnRef (NilString));
 
     auto args (ycom::BuildCommandLine (ytest::ArgumentCount (originalArgs),
                                        ytest::Arguments (originalArgs),
-                                       *instrumentation));
+                                       instrumentation));
 
     Matcher <std::string> matchers[] = { StrEq (ytest::MockProgramName) };
 
@@ -105,14 +104,14 @@ TEST_F (BuildCommandLine, ReturnWrapperAndOptions)
 {
     CommandLineArguments originalArgs (GenerateCommandLine (NoOptions));
 
-    ON_CALL (*instrumentation, WrapperBinary ())
+    ON_CALL (instrumentation, WrapperBinary ())
         .WillByDefault (ReturnRef (MockWrapper));
-    ON_CALL (*instrumentation, WrapperOptions ())
+    ON_CALL (instrumentation, WrapperOptions ())
         .WillByDefault (ReturnRef (MockOptions));
 
     auto args (ycom::BuildCommandLine (ytest::ArgumentCount (originalArgs),
                                        ytest::Arguments (originalArgs),
-                                       *instrumentation));
+                                       instrumentation));
 
     Matcher <std::string> matchers[] =
     {
